@@ -10,7 +10,7 @@ const token = {
 
   generateRefreshToken: (userData) => {
     return jwt.sign({ userData }, process.env.MY_REFRESH_SECRET_KEY, {
-      expiresIn: "7d", // Refresh token lasts for 7 days
+      expiresIn: "7d",
     });
   },
 

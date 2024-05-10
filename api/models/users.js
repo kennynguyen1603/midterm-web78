@@ -6,6 +6,7 @@ const UsersSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   profile: { type: mongoose.Schema.Types.ObjectId, ref: Collections.PROFILE },
+  refreshToken: { type: String },
 });
 
 const UsersModel = mongoose.model(Collections.USERS, UsersSchema);

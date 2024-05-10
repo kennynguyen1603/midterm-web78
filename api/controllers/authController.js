@@ -2,7 +2,10 @@ import UsersModel from "../models/users.js";
 import ProfileModel from "../models/profile.js";
 import bcrypt from "bcrypt";
 import { token } from "../utils/token.js";
+import jwt from "jsonwebtoken";
+// import dotenv from "dotenv";
 
+// dotenv.config();
 // Validation function
 function validateFields(fields) {
   for (const [key, value] of Object.entries(fields)) {
@@ -129,12 +132,19 @@ const authController = {
         email: user.email,
       });
 
+      req.session.user = { id: user._id, email: user.email };
+
       // const userObject = user.toObject();
       // delete userObject.password;
+      user.refreshToken = refreshToken;
+      user.save();
 
-      return res.status(200).json({
+      return res.status(200).send({
         message: "Login successful",
-        accessToken,
+        token: {
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        },
         user: {
           username: user.username,
           email: user.email,
@@ -147,6 +157,67 @@ const authController = {
         message: error.message || "Internal server error",
         success: false,
       });
+    }
+  },
+  refreshAccessToken: async (req, res) => {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) throw new Error("Refresh token is required");
+
+      let decodedToken = token.verifyRefreshToken(refreshToken);
+
+      console.log(decodedToken.userData);
+
+      const user = await UsersModel.findOne({
+        _id: decodedToken.userData.userId,
+        refreshToken,
+      });
+
+      if (!user)
+        return res.status(403).send({ message: "Invalid Refresh Token!" });
+
+      const newAccessToken = token.generateAccessToken(
+        { userId: user._id, email: user.email },
+        "15m"
+      );
+
+      return res.status(200).send({
+        message: "Access token refreshed successfully",
+        newAccessToken,
+      });
+    } catch (error) {
+      return res.status(error.status || 500).send({
+        data: null,
+        message: error.message || "Internal server error",
+        success: false,
+      });
+    }
+  },
+  logout: async (req, res) => {
+    try {
+      // console.log(req.session);
+      // console.log(req.session.user);
+      const { refreshToken } = req.body;
+
+      if (!refreshToken) throw new Error("Refresh Token Is Required!");
+      else UsersModel.deleteOne({ refreshToken });
+      if (!req.session.user)
+        return res.status(400).send({ message: "No active session found" });
+
+      if (req.session) {
+        req.session.destroy((err) => {
+          if (err) {
+            return res.status(500).json({ message: "Unable to log out" });
+          }
+          return res.status(200).json({ message: "Logout successful" });
+        });
+      } else {
+        return res.status(400).json({ message: "No active session found" });
+      }
+    } catch (error) {
+      return res
+        .status(500)
+        .send({ message: error.message || "Internal server error" });
     }
   },
 };
