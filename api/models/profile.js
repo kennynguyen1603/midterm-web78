@@ -4,7 +4,7 @@ import SkillsModel from "./skills.js";
 import ProjectsModel from "./projects.js";
 import EmploymentModel from "./employment.js";
 
-const SkillsSchema = new mongoose.Schema({
+const ProfileSchema = new mongoose.Schema({
   full_name: { type: String, required: true },
   date_of_birth: { type: Date, required: true },
   place_of_birth: { type: String, required: true },
@@ -17,6 +17,6 @@ const SkillsSchema = new mongoose.Schema({
   goals: [{ type: String }],
 });
 
-const ProfileModel = mongoose.model(Collections.PROFILE, SkillsSchema);
+const ProfileModel = mongoose.model(Collections.PROFILE, ProfileSchema);
 
 export default ProfileModel;
