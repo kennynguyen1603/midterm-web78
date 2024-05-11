@@ -1,8 +1,20 @@
 import ProfileModel from "../models/profile.js";
+import { removeProfileFromUser } from "./usersController.js";
 
 const profilesController = {
   createProfile: async (req, res) => {
     try {
+      // thực hiện kiểm tra xem người dùng này đã tạo profile trước đó chưa (tồn tại 1 profile rồi),
+      // Nếu chưa thì mới được tạo
+      const userId = req.session.user.id;
+
+      const existingProfile = await ProfileModel.findOne({ user: userId });
+      if (existingProfile) {
+        return res
+          .status(409)
+          .json({ message: "Người dùng này đã có hồ sơ tồn tại." });
+      }
+
       const {
         full_name,
         date_of_birth,
@@ -17,6 +29,7 @@ const profilesController = {
       } = req.body;
 
       const profile = new ProfileModel({
+        user: userId,
         full_name,
         date_of_birth,
         place_of_birth,
@@ -37,7 +50,7 @@ const profilesController = {
     } catch (error) {
       return res
         .status(500)
-        .json({ message: error.message || "Lỗi máy chủ nội bộ" });
+        .send({ message: error.message || "Lỗi máy chủ nội bộ" });
     }
   },
   getProfileById: async (req, res) => {
@@ -87,18 +100,23 @@ const profilesController = {
   },
   deleteProfileById: async (req, res) => {
     try {
-      const deletedProfile = await ProfileModel.findByIdAndDelete(
-        req.profileId
-      );
-
-      console.log(deletedProfile);
-
-      if (!deletedProfile) {
+      const profile = await ProfileModel.findById(req.profileId);
+      if (!profile) {
         return res.status(404).send({ message: "Profile does not exist" });
       }
 
+      const userId = profile.user;
+
+      await ProfileModel.findByIdAndDelete(req.profileId);
+
+      await removeProfileFromUser(userId);
+
       return res.status(200).send({ message: "Profile deleted successfully" });
-    } catch (error) {}
+    } catch (error) {
+      return res
+        .status(500)
+        .send({ message: error.message || "Internal server error" });
+    }
   },
 };
 

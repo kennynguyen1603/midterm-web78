@@ -12,7 +12,7 @@ profileRoutes.post(
 
 profileRoutes.get(
   "/:profileId",
-  //   authMiddleware.verifyToken,
+  authMiddleware.verifyToken,
   profilesController.getProfileById
 );
 

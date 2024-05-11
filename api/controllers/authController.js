@@ -57,7 +57,7 @@ const authController = {
       if (existingUser) {
         return res
           .status(409)
-          .json({ message: "Username or email already exists!" });
+          .send({ message: "Username or email already exists!" });
       }
 
       // Hash the password
@@ -90,6 +90,8 @@ const authController = {
         password: hashedPassword,
         profile: savedProfile._id,
       });
+
+      // await profile.user = createdUser._id;
 
       return res.status(201).json({
         data: createdUser,
