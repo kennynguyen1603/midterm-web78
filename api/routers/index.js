@@ -1,7 +1,7 @@
 import { Router } from "express";
-import userRouters from "./users.js";
-import profileRoutes from "./profiles.js";
-import authRouters from "./auth.js";
+import userRouters from "./usersRoutes.js";
+import profileRoutes from "./profilesRoutes.js";
+import authRouters from "./authsRoutes.js";
 const rootRouterV1 = Router();
 rootRouterV1.use("/users", userRouters);
 rootRouterV1.use("/profiles", profileRoutes);

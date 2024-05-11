@@ -9,6 +9,4 @@ userRouters.get(
   usersController.protected
 );
 
-userRouters.get("/profile/:profileId", usersController.getProfileById);
-
 export default userRouters;
